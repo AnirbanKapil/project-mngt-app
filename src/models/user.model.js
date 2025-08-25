@@ -15,7 +15,7 @@ const userSchema = new Schema(
                 localPath : ""
             }
         },
-        user : {
+        username : {
             type : String,
             required : true,
             unique : true,
