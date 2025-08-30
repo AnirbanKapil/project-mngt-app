@@ -9,9 +9,9 @@ const generateAccessAndRefreshToken = async (userId) => {
     const user = await User.findById(userId)
     
     try {
-        const accessToken = user.generateAccessToken();
-        const refreshToken =  user.generateRefreshToken();
-
+        const accessToken = await user.generateAccessToken();
+        const refreshToken = await user.generateRefreshToken();
+        
         user.refreshToken = refreshToken;
         await user.save({validateBeforeSave : false});
         
@@ -75,7 +75,7 @@ const registerUser = asyncHandler(async (req,res) => {
 
 const loginUser = asyncHandler(async (req,res) => {
     
-    const {password , email} = req.body();
+    const {password , email} = req.body;
 
     if(!email){
         throw new ApiError(401,"email is required"); 
@@ -86,7 +86,7 @@ const loginUser = asyncHandler(async (req,res) => {
         throw new ApiError(400,"user does not exist");
     };
     
-    const isPasswordValid = await user.isPasswordValid(password);
+    const isPasswordValid = await user.isPasswordCorrect(password);
     if(!isPasswordValid){
         throw new ApiError(400,"invalid credentials");
     };
