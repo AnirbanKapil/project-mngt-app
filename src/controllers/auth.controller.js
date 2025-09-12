@@ -143,7 +143,7 @@ const getCurrentUser = asyncHandler(async (req,res) => {
 });
 
 
-const verifyEmail = asyncHandle(async (req,res) => {
+const verifyEmail = asyncHandler(async (req,res) => {
     const {verificationToken} = req.params;
 
     if(!verificationToken){
@@ -177,4 +177,4 @@ const verifyEmail = asyncHandle(async (req,res) => {
 });
 
 
-export {registerUser , loginUser , logoutUser , getCurrentUser};
+export {registerUser , loginUser , logoutUser , getCurrentUser , verifyEmail};
