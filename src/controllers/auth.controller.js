@@ -2,7 +2,9 @@ import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import {emailVerificationMailgenContent, sendEmail} from "../utils/mail.js"
+import {emailVerificationMailgenContent, sendEmail} from "../utils/mail.js";
+import jwt from ' jsonwebtoken'
+
 
 const generateAccessAndRefreshToken = async (userId) => {
     
@@ -206,6 +208,46 @@ const resendEmailVerification = asyncHandler(async (req,res) => {
 
     return res.status(200)
               .json(201,{},"Mail has been sent to your EmailId")
+});
+
+
+const refreshAccessToken = asyncHandler(async (req,res) => {
+    const incommingRefreshToken = req.cookie?.refreshToken || req.body?.refreshToken;
+
+    if(!incommingRefreshToken){
+        throw new ApiError(401,"Unauthorized access")
+    };
+
+    try {
+        const decodedRefreshToken = await jwt.verify(incommingRefreshToken,process.env.REFRESH_TOKEN_SECRET);
+
+        const user = await User.findById(decodedRefreshToken?._id);
+        if(!user){
+            throw new ApiError(402,"Invalid refresh token")
+        };
+
+        if(incommingRefreshToken !== user?.refreshToken){
+            throw new ApiError(403,"Refresh token has expired")
+        };
+        
+        const options = {
+            httpOnly : true,
+            secure : true
+        };
+
+        const {accessToken , refreshToken : newRefreshToken } = await user.generateAccessAndRefreshToken(user._id);
+
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        return res.status(201)
+                  .cookie("accessToken",accessToken,options)
+                  .cookie("refreshToken",newRefreshToken,options)
+                  .json(new ApiResponse(200,{accessToken,refreshToken : newRefreshToken},"Access token refreshed successfully"));
+
+    } catch (error) {
+        throw new ApiError(401,"Invalid refresh token")
+    };
 })
 
 export {registerUser , loginUser , logoutUser , getCurrentUser , verifyEmail , resendEmailVerification};
