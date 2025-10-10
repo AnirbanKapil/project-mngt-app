@@ -212,7 +212,7 @@ const resendEmailVerification = asyncHandler(async (req,res) => {
 
 
 const refreshAccessToken = asyncHandler(async (req,res) => {
-    const incommingRefreshToken = req.cookie?.refreshToken || req.body?.refreshToken;
+    const incommingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if(!incommingRefreshToken){
         throw new ApiError(401,"Unauthorized access")
